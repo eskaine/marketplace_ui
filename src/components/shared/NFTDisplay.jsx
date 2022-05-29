@@ -2,16 +2,17 @@ import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { EthersContext } from '../../utils/EthersProvider';
+import CubedImage from './CubedImage';
 
 function NFTDisplay({
-  label, imageUrl, owner, price,
+  name, imageUrl, owner, price,
 }) {
   const { userAccount } = useContext(EthersContext);
   return (
     <div className="rounded-full px-4 py-2">
 
-      <img className="rounded-lg object-cover h-60 w-60" src={imageUrl} alt={label} />
-      <p className="py-3 px-3 font-bold text-center">{label}</p>
+      <CubedImage src={imageUrl} alt={name.toLowerCase()} />
+      <p className="py-3 px-3 font-bold text-center">{name}</p>
       <hr className="mx-3" />
       <div className="flex justify-around items-center">
 
@@ -36,7 +37,7 @@ function NFTDisplay({
 }
 
 NFTDisplay.propTypes = {
-  label: PropTypes.string,
+  name: PropTypes.string,
   imageUrl: PropTypes.string,
   owner: PropTypes.string,
   price: PropTypes.number,

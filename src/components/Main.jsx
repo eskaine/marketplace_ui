@@ -4,11 +4,12 @@ import { EthersContext } from '../utils/EthersProvider';
 
 function Main() {
   const { getNFTList } = useContext(EthersContext);
-  const [list, setList] = useState([]);
+  const [displayList, setDisplayList] = useState(null);
 
   async function getList() {
     const list = await getNFTList();
-    setList(list); 
+    console.log({list});
+    setDisplayList(list); 
   }
 
   useEffect(() => {
@@ -19,9 +20,9 @@ function Main() {
     <main className="content mt-10">
       <div className="content-title">NFT List</div>
       <div className="flex justify-center flex-wrap">
-        {list.map((nft) => (
+        {displayList && displayList.map((nft) => (
           <NFTDisplay
-            label={nft.label}
+            name={nft.name}
             imageUrl={nft.imageUrl}
             owner={nft.currentOwner}
             price={nft.price}

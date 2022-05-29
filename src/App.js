@@ -12,7 +12,7 @@ import './index.css';
 import './styles/base.css';
 
 function App() {
-  const { userAccount } = useContext(EthersContext);
+  const { getContract, userAccount } = useContext(EthersContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +20,10 @@ function App() {
       return navigate('/');
     }
   }, [userAccount]);
+
+  useEffect(() => {
+    getContract();
+  }, []);
 
   return (
     <div className="App">

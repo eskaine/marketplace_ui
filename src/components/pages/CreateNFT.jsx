@@ -1,41 +1,46 @@
 import React, { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Buffer } from 'buffer';
 import { EthersContext } from '../../utils/EthersProvider';
 import Button from '../shared/Button';
+import CubedImage from '../shared/CubedImage';
 import ipfsClient from '../../utils/ipfsClient';
-import { useNavigate } from 'react-router-dom';
 
 
 function CreateNFT() {
   const navigate = useNavigate();
   const { getNFTList, addNFT } = useContext(EthersContext);
   const [fileUrl, setFileUrl] = useState(null);
+  const [displayImage, setDisplayImage] = useState(null);
+
   const [formInput, updateFormInput] = useState({ price: '', name: '' });
 
   async function onChange(e) {
     const file = e.target.files[0];
-    // const reader = new window.FileReader();
-    // reader.readAsArrayBuffer(file);
-    // reader.onloadend = () => {
-    //   const buffer = Buffer(reader.result);
-    //   setFileUrl(buffer);
-    // }
-    try {
-      const added = await ipfsClient.add(
-        file,
-        {
-          // eslint-disable-next-line no-console
-          progress: (prog) => console.log(`received: ${prog}`),
-        },
-      );
-      console.log('issue');
-      const url = `https://ipfs.infura.io/ipfs/${added.path}`;
-      console.log({ url });
-      setFileUrl(url);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error uploading file: ', error);
+    const reader = new window.FileReader();
+    reader.readAsArrayBuffer(file);
+    reader.onloadend = () => {
+      const buffer = Buffer(reader.result);
+      setFileUrl(buffer);
+      const image = buffer.toString('base64');
+      setDisplayImage(image);
     }
+    // try {
+    //   const added = await ipfsClient.add(
+    //     file,
+    //     {
+    //       // eslint-disable-next-line no-console
+    //       progress: (prog) => console.log(`received: ${prog}`),
+    //     },
+    //   );
+    //   console.log('issue');
+    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`;
+    //   console.log({ url });
+    //   setFileUrl(url);
+    // } catch (error) {
+    //   // eslint-disable-next-line no-console
+    //   console.log('Error uploading file: ', error);
+    // }
   }
 
   async function createNft() {
@@ -52,8 +57,7 @@ function CreateNFT() {
         navigate('/');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error uploading file: ', error);
+      console.error('Error uploading file!');
     }
   }
 
@@ -61,6 +65,8 @@ function CreateNFT() {
     <main className="container mx-auto mt-10">
       <section>
         <div className="content-title">Preview Item</div>
+        {displayImage ? <CubedImage src={`data:image/png;base64,${displayImage}`} alt='' /> : 
+          <CubedImage src='https://via.placeholder.com/180x180.png?text=No+Image' alt='' />}
         
         <div className='form'>
           <div className='form_row'>
@@ -104,11 +110,7 @@ function CreateNFT() {
               </label>
             </div> */}
           <Button bgColor="primary-color" name="Add NFT" onClick={() => createNft()} />
-          {
-          fileUrl && (
-            <img className="rounded mt-4" width="350" src={fileUrl} alt="" />
-          )
-        }
+          
       </section>
     </main>
   );

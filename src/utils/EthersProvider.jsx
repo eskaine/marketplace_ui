@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { ethers } from 'ethers';
 import contractAbi from './MarketPlace.json';
-import ipfsClient from './ipfsClient';
+// import ipfsClient from './ipfsClient';
 import data from './seedData';
 
 const EthersContext = React.createContext();
@@ -10,6 +10,8 @@ const EthersContext = React.createContext();
 function EthersProvider({ children }) {
   const [contractAddress] = useState('0x5FbDB2315678afecb367f032d93F642f64180aa3');
   const [userAccount, setUserAccount] = useState(null);
+  const [sampleImageUrl] = useState('https://ipfs.infura.io/ipfs/Qmf6isejKuRVLxWyY1NpMudrGp97xo5NCtamynbKrssjBi');
+  const [contract, setContract] = useState(null);
 
   async function connectWallet() {
     try {
@@ -29,32 +31,33 @@ function EthersProvider({ children }) {
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+      const newContract = new ethers.Contract(contractAddress, contractAbi.abi, signer);
 
-      return new ethers.Contract(
-        contractAddress,
-        contractAbi.abi,
-        signer,
-      );
+      setContract(newContract);
     }
   }
 
   async function addNFT({name, price, isListed, image}) {
+    let imageUrl = '';
 
-    // if (image) {
-    //   const imgObj = await ipfsClient.add(image, {
-    //     progress: (prog) => console.log(`received: ${prog}`),
-    //   });
-    //   newNFT.imageUrl = `https://ipfs.infura.io/ipfs/${imgObj.path}`;
-    // }
+    if (image) {
+      // const imgObj = await ipfsClient.add(image, {
+      //   progress: (prog) => console.log(`received: ${prog}`),
+      // });
+      // newNFT.imageUrl = `https://ipfs.infura.io/ipfs/${imgObj.path}`;
+      imageUrl = sampleImageUrl;
+    }
 
-    const contract = getContract();
+    if(contract) {
+      let tx = await contract.addNFT(name, price, imageUrl, isListed,  {
+        value: ethers.utils.parseEther("0.1"),
+      });
+      const receipt = await tx.wait();
+      
+      return receipt;
+    }    
     
-    let tx = await contract.addNFT(name, price, image, isListed,  {
-      value: ethers.utils.parseEther("0.1"),
-    });
-    const receipt = await tx.wait();
-    
-    return receipt;
+    return;
   }
 
   async function editNFT({
@@ -65,8 +68,9 @@ function EthersProvider({ children }) {
     };
 
     if (currentImageUrl === '') {
-      const imageUrl = await ipfsClient.add(image);
-      NFT.imageUrl = imageUrl;
+      // const imageUrl = await ipfsClient.add(image);
+      // NFT.imageUrl = imageUrl;
+      NFT.imageUrl = sampleImageUrl;
     } else {
       NFT.imageUrl = currentImageUrl;
     }
@@ -76,31 +80,29 @@ function EthersProvider({ children }) {
   }
 
   async function getNFTList() {
-    const contract = getContract();
+    let seedData = data.map((d) => {
+      d.imageUrl = sampleImageUrl;
+      return d;
+    });
 
-    const list = await contract.getAllListedNFT();
+    if(contract) {
+      const list = await contract.getAllListedNFT();
 
-      let seedData = data.map((d) => {
-        d.imageUrl = 'https://ipfs.infura.io/ipfs/Qmf6isejKuRVLxWyY1NpMudrGp97xo5NCtamynbKrssjBi';
-
-        return d;
-      });
-
-
-    for(let i in list) {
-      seedData.push({
-        label: list[i].name,
-        imageUrl: list[i].imageUrl,
-        currentOwner: list[i].currentOwner,
-        price: list[i].price.toNumber(),
-      });
+      for(let i in list) {
+        seedData.push({
+          name: list[i].name,
+          imageUrl: list[i].imageUrl,
+          currentOwner: list[i].currentOwner,
+          price: list[i].price.toNumber(),
+        });
+      }
     }
 
     return seedData;
   }
 
   const memoizedState = useMemo(() => ({
-    addNFT, editNFT, getNFTList, connectWallet, userAccount,
+    addNFT, editNFT, getNFTList, connectWallet, getContract, userAccount,
   }));
 
   return (
