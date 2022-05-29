@@ -11,7 +11,7 @@ function CreateNFT() {
   const navigate = useNavigate();
   const { getNFTList, addNFT } = useContext(EthersContext);
   const [fileUrl, setFileUrl] = useState(null);
-  const [displayImage, setDisplayImage] = useState(null);
+  const [displayImage, setDisplayImage] = useState('https://via.placeholder.com/180x180.png?text=No+Image');
 
   const [formInput, updateFormInput] = useState({ price: '', name: '' });
 
@@ -22,25 +22,8 @@ function CreateNFT() {
     reader.onloadend = () => {
       const buffer = Buffer(reader.result);
       setFileUrl(buffer);
-      const image = buffer.toString('base64');
-      setDisplayImage(image);
+      setDisplayImage(`data:image/png;base64,${buffer.toString('base64')}`);
     }
-    // try {
-    //   const added = await ipfsClient.add(
-    //     file,
-    //     {
-    //       // eslint-disable-next-line no-console
-    //       progress: (prog) => console.log(`received: ${prog}`),
-    //     },
-    //   );
-    //   console.log('issue');
-    //   const url = `https://ipfs.infura.io/ipfs/${added.path}`;
-    //   console.log({ url });
-    //   setFileUrl(url);
-    // } catch (error) {
-    //   // eslint-disable-next-line no-console
-    //   console.log('Error uploading file: ', error);
-    // }
   }
 
   async function createNft() {
@@ -51,7 +34,7 @@ function CreateNFT() {
         isListed: true,
         image: fileUrl,
       };
-      console.log({formInput, newNft});
+
       const result = await addNFT(newNft);
       if(result) {
         navigate('/');
@@ -65,8 +48,7 @@ function CreateNFT() {
     <main className="container mx-auto mt-10">
       <section>
         <div className="content-title">Preview Item</div>
-        {displayImage ? <CubedImage src={`data:image/png;base64,${displayImage}`} alt='' /> : 
-          <CubedImage src='https://via.placeholder.com/180x180.png?text=No+Image' alt='' />}
+        <CubedImage src={displayImage} alt='' />
         
         <div className='form'>
           <div className='form_row'>
