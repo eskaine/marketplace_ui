@@ -28,6 +28,7 @@ function EthersProvider({ children }) {
   }
 
   function getContract() {
+    console.log('get contract');
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -80,13 +81,17 @@ function EthersProvider({ children }) {
   }
 
   async function getNFTList() {
+    console.log('get contract 2');
     let seedData = data.map((d) => {
       d.imageUrl = sampleImageUrl;
       return d;
     });
+    console.log({contract});
 
     if(contract) {
+    console.log('get contract 2a');
       const list = await contract.getAllListedNFT();
+      console.log('get contract 2b');
 
       for(let i in list) {
         seedData.push({

@@ -48,6 +48,7 @@ function CreateNFT() {
     <main className="container mx-auto mt-10">
       <section>
         <div className="content-title">Preview Item</div>
+        
         <CubedImage src={displayImage} alt='' />
         
         <div className='form'>
