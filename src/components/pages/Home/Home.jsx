@@ -8,18 +8,18 @@ const useDisplayList = () => {
 
   async function getList() {
     const list = await getNFTList();
-    setDisplayList(list); 
+    setDisplayList(list);
   }
 
   useEffect(() => {
-      getList();
+    getList();
   });
 
   return displayList;
-}
+};
 
 const Home = () => {
- const displayList = useDisplayList();
+  const displayList = useDisplayList();
 
   return (
     <main className="content mt-10">
@@ -36,8 +36,6 @@ const Home = () => {
       </div>
     </main>
   );
-}
-
-
+};
 
 export default Home;

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import './NavButton.css';
 
-const NavButton = ({name, url, style}) => {
+const NavButton = ({ name, url, style }) => {
   const navigate = useNavigate();
 
   return (
@@ -14,7 +14,7 @@ const NavButton = ({name, url, style}) => {
 NavButton.propTypes = {
   name: PropTypes.string,
   url: PropTypes.string,
-  style: PropTypes.string
+  style: PropTypes.string,
 };
 
 export default NavButton;

@@ -4,11 +4,12 @@ import { ethers } from 'ethers';
 import contractAbi from './MarketPlace.json';
 // import ipfsClient from './ipfsClient';
 import data from './seedData';
+import { MarketPlaceContractAddress } from './config';
 
 const EthersContext = React.createContext();
 
-function EthersProvider({ children }) {
-  const [contractAddress] = useState('0x5FbDB2315678afecb367f032d93F642f64180aa3');
+const EthersProvider = ({ children }) => {
+  const [contractAddress] = useState(MarketPlaceContractAddress);
   const [userAccount, setUserAccount] = useState(null);
   const [sampleImageUrl] = useState('https://ipfs.infura.io/ipfs/Qmf6isejKuRVLxWyY1NpMudrGp97xo5NCtamynbKrssjBi');
   const [contract, setContract] = useState(null);
@@ -28,7 +29,6 @@ function EthersProvider({ children }) {
   }
 
   function getContract() {
-    console.log('get contract');
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -38,7 +38,9 @@ function EthersProvider({ children }) {
     }
   }
 
-  async function addNFT({name, price, isListed, image}) {
+  async function addNFT({
+    name, price, isListed, image,
+  }) {
     let imageUrl = '';
 
     if (image) {
@@ -49,16 +51,14 @@ function EthersProvider({ children }) {
       imageUrl = sampleImageUrl;
     }
 
-    if(contract) {
-      let tx = await contract.addNFT(name, price, imageUrl, isListed,  {
-        value: ethers.utils.parseEther("0.1"),
+    if (contract) {
+      const tx = await contract.addNFT(name, price, imageUrl, isListed, {
+        value: ethers.utils.parseEther('0.1'),
       });
       const receipt = await tx.wait();
-      
+
       return receipt;
-    }    
-    
-    return;
+    }
   }
 
   async function editNFT({
@@ -81,19 +81,15 @@ function EthersProvider({ children }) {
   }
 
   async function getNFTList() {
-    console.log('get contract 2');
-    let seedData = data.map((d) => {
+    const seedData = data.map((d) => {
       d.imageUrl = sampleImageUrl;
       return d;
     });
-    console.log({contract});
 
-    if(contract) {
-    console.log('get contract 2a');
+    if (contract) {
       const list = await contract.getAllListedNFT();
-      console.log('get contract 2b');
 
-      for(let i in list) {
+      for (const i in list) {
         seedData.push({
           name: list[i].name,
           imageUrl: list[i].imageUrl,
@@ -115,7 +111,7 @@ function EthersProvider({ children }) {
       {children}
     </EthersContext.Provider>
   );
-}
+};
 
 EthersProvider.propTypes = {
   children: PropTypes.oneOfType([

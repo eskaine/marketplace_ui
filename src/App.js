@@ -11,6 +11,8 @@ const App = () => {
     if (!userAccount) {
       return navigate('/');
     }
+
+    return undefined;
   }, [userAccount]);
 
   useEffect(() => {

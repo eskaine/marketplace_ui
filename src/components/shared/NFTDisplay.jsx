@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 import { EthersContext } from '../../utils/EthersProvider';
 import CubedImage from './CubedImage';
 
-function NFTDisplay({
+const NFTDisplay = ({
   name, imageUrl, owner, price,
-}) {
+}) => {
   const { userAccount } = useContext(EthersContext);
   return (
     <div className="rounded-full px-4 py-2">
@@ -34,7 +34,7 @@ function NFTDisplay({
       </div>
     </div>
   );
-}
+};
 
 NFTDisplay.propTypes = {
   name: PropTypes.string,
