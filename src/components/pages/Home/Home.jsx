@@ -2,30 +2,24 @@ import React, { useContext, useEffect, useState } from 'react';
 import NFTDisplay from '../../shared/NFTDisplay';
 import { EthersContext } from '../../../utils/EthersProvider';
 
-const useDisplayList = () => {
-  const { getNFTList } = useContext(EthersContext);
-  const [displayList, setDisplayList] = useState(null);
-
-  async function getList() {
-    const list = await getNFTList();
-    setDisplayList(list);
-  }
+const loadNFTs = () => {
+  const { getNFTList, nfts } = useContext(EthersContext);
 
   useEffect(() => {
-    getList();
-  });
+    getNFTList();
+  }, []);
 
-  return displayList;
+  return nfts;
 };
 
 const Home = () => {
-  const displayList = useDisplayList();
+  const nfts = loadNFTs();
 
   return (
     <main className="content mt-10">
       <div className="content-title">Home</div>
       <div className="flex justify-center flex-wrap">
-        {displayList && displayList.map((nft) => (
+        {nfts.map((nft) => (
           <NFTDisplay
             name={nft.name}
             imageUrl={nft.imageUrl}

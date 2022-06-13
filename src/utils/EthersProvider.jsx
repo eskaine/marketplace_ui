@@ -127,7 +127,7 @@ const EthersProvider = ({ children }) => {
   }
 
   const memoizedState = useMemo(() => ({
-    buyNft, getNFTList,
+    buyNft, getNFTList, nfts
   }));
 
   return (
