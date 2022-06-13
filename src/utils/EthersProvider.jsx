@@ -1,41 +1,87 @@
 import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { ethers } from 'ethers';
-import contractAbi from './MarketPlace.json';
+import axios from 'axios';
+import marketPlaceAbi from './contracts/MarketPlace.json';
+import nftAbi from './contracts/NFT.json';
+
 // import ipfsClient from './ipfsClient';
 import data from './seedData';
-import { MarketPlaceContractAddress } from './config';
+import contractAddresses from './config';
 
 const EthersContext = React.createContext();
 
 const EthersProvider = ({ children }) => {
-  const [contractAddress] = useState(MarketPlaceContractAddress);
+  const [addresses] = useState(contractAddresses);
+  const [abis] = useState({
+    marketPlace: marketPlaceAbi
+  });
+
+  const [nfts, setNfts] = useState([]);
+
   const [userAccount, setUserAccount] = useState(null);
   const [sampleImageUrl] = useState('https://ipfs.infura.io/ipfs/Qmf6isejKuRVLxWyY1NpMudrGp97xo5NCtamynbKrssjBi');
-  const [contract, setContract] = useState(null);
+  const [contracts, setContracts] = useState({
+    marketPlace: null,
+    nft: null
+  });
 
   async function connectWallet() {
-    try {
-      if (window.ethereum) {
-        const user = await window.ethereum.request(
-          { method: 'eth_requestAccounts' },
-        );
+    const web3Modal = new Web3Modal();
+    const connection = await web3Modal.connect();
+    const provider = new ethers.providers.Web3Provider(connection);
+    const signer = provider.getSigner();
 
-        setUserAccount(user[0]);
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    return signer;
   }
 
-  function getContract() {
-    if (window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const newContract = new ethers.Contract(contractAddress, contractAbi.abi, signer);
+  function getUnsignedContract(contractName) {
+    const provider = new ethers.providers.JsonRpcProvider();
+    const contract = new ethers.Contract(addresses[contractName], abis[contractName], provider);
 
-      setContract(newContract);
-    }
+    return contract;
+  }
+
+  async function getSignedContract(contractName) {
+    const signer = await connectWallet();
+    const contract = new ethers.Contract(addresses[contractName], abis[contractName], signer);
+
+    return contract;
+  }
+
+  async function buyNft(nft) {
+    const contract = getSignedContract('marketPlace');
+    const price = ethers.utils.parseUnits(nft.price.toString(), 'ether');
+    const transaction = await contract.itemSale(addresses.nft, nft.tokenId, {
+      value: price
+    });
+
+    await transaction.wait();
+    getNFTList();
+  }
+
+  async function getNFTList() {
+    const marketPlaceContract = getUnsignedContract('marketPlace');
+    const list = await marketPlaceContract.getAllItems();
+
+    const items = await Promise.all(list.map(async i => {
+      const tokenUri = await contracts.nft.tokenUri(i.tokenId);
+      const meta = await axios.get(tokenUri);
+      let price = ethers.utils.formatUnits(i.price.toString(), 'ether');
+      let item = {
+        price, 
+        tokenId: i.tokenId.toNumber(),
+        seller: i.seller,
+        owner: i.ownder,
+        image: meta.data.image,
+        name: meta.data.name,
+        description: meta.data.description
+      };
+
+      return item;
+    }));
+
+    setNfts(items);
   }
 
   async function addNFT({
@@ -76,34 +122,12 @@ const EthersProvider = ({ children }) => {
       NFT.imageUrl = currentImageUrl;
     }
 
-    const contract = getContract();
-    contract.editNFT(...NFT);
-  }
-
-  async function getNFTList() {
-    const seedData = data.map((d) => {
-      d.imageUrl = sampleImageUrl;
-      return d;
-    });
-
-    if (contract) {
-      const list = await contract.getAllListedNFT();
-
-      for (const i in list) {
-        seedData.push({
-          name: list[i].name,
-          imageUrl: list[i].imageUrl,
-          currentOwner: list[i].currentOwner,
-          price: list[i].price.toNumber(),
-        });
-      }
-    }
-
-    return seedData;
+    const currentContract = getContract();
+    currentContract.editNFT(...NFT);
   }
 
   const memoizedState = useMemo(() => ({
-    addNFT, editNFT, getNFTList, connectWallet, getContract, userAccount,
+    buyNft, getNFTList,
   }));
 
   return (
